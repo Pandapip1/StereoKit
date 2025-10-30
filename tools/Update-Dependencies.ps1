@@ -109,7 +109,7 @@ $dependencies = @(
         $null
     ), 
     [Dependency]::new(
-        'reactphysics3d',
+        'ReactPhysics3D',
         'https://github.com/DanielChappuis/reactphysics3d.git',
         'reactphysics.patch',
         $null,
@@ -136,7 +136,7 @@ $dependencies = @(
         $null
     )
     [Dependency]::new(
-        'basis_universal',
+        'basisu',
         'https://github.com/BinomialLLC/basis_universal.git',
         '',
         $null,

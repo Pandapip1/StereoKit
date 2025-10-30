@@ -187,72 +187,97 @@ include("cmake/CPM.cmake")
 
 #### ReactPhysics3D - https://www.reactphysics3d.com/ ####
 if(SK_PHYSICS)
-  # Recent versions of MSVC introduce a chrono bug, this patch removes chrono
-  # code from ReactPhysics3D. Linux doesn't like applying this patch, so we
-  # only use it with MSVC
-  if(MSVC)
-    set(SK_PHYS_PATCH git apply ${CMAKE_CURRENT_SOURCE_DIR}/tools/reactphysics.patch)
+  find_package(ReactPhysics3D)
+
+  if(ReactPhysics3D_FOUND)
+    set(PHYSICS_LIB ReactPhysics3D)
+  else()
+    # Recent versions of MSVC introduce a chrono bug, this patch removes chrono
+    # code from ReactPhysics3D. Linux doesn't like applying this patch, so we
+    # only use it with MSVC
+    if(MSVC)
+      set(SK_PHYS_PATCH git apply ${CMAKE_CURRENT_SOURCE_DIR}/tools/reactphysics.patch)
+    endif()
+
+    CPMAddPackage( # We're scraping the comment after the NAME for some other scripts
+      NAME ReactPhysics3D # 0.9.1
+      GITHUB_REPOSITORY DanielChappuis/reactphysics3d
+      GIT_TAG 17dd22e677ed861b0d4ece0c00a7e3cb503cc2f0
+      PATCH_COMMAND ${SK_PHYS_PATCH}
+      EXCLUDE_FROM_ALL YES
+    )
+    # Something in reactphysics3d seems to require -fPIC
+    set_property(TARGET ReactPhysics3D PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+    set(PHYSICS_LIB ReactPhysics3D)
   endif()
-
-  CPMAddPackage( # We're scraping the comment after the NAME for some other scripts
-    NAME reactphysics3d # 0.9.1
-    GITHUB_REPOSITORY DanielChappuis/reactphysics3d
-    GIT_TAG 17dd22e677ed861b0d4ece0c00a7e3cb503cc2f0
-    PATCH_COMMAND ${SK_PHYS_PATCH}
-    EXCLUDE_FROM_ALL YES
-  )
-  # Something in reactphysics3d seems to require -fPIC
-  set_property(TARGET reactphysics3d PROPERTY POSITION_INDEPENDENT_CODE ON)
-
-  set(PHYSICS_LIB reactphysics3d)
 endif()
 
+
 #### OpenXR - https://www.khronos.org/openxr/ ####
-if (SK_BUILD_OPENXR_LOADER)
-  CPMAddPackage( # We're scraping the comment after the NAME for some other scripts
-    NAME openxr_loader # 1.0.34
-    GITHUB_REPOSITORY KhronosGroup/OpenXR-SDK
-    GIT_TAG 288d3a7ebc1ad959f62d51da75baa3d27438c499
-    OPTIONS
-    "BUILD_WITH_SYSTEM_JSONCPP OFF"
-    "BUILD_WITH_XCB_HEADERS OFF"
-    "DYNAMIC_LOADER ${SK_DYNAMIC_OPENXR}"
-  )
-  
-  set(OPENXR_LIB openxr_loader)
+if(SK_BUILD_OPENXR_LOADER)
+  find_package(OpenXR)
+
+  if(OpenXR_FOUND)
+    set(OPENXR_LIB OpenXR::openxr_loader)
+  else()
+    CPMAddPackage( # We're scraping the comment after the NAME for some other scripts
+      NAME openxr_loader # 1.0.34
+      GITHUB_REPOSITORY KhronosGroup/OpenXR-SDK
+      GIT_TAG 288d3a7ebc1ad959f62d51da75baa3d27438c499
+      OPTIONS
+      "BUILD_WITH_SYSTEM_JSONCPP OFF"
+      "BUILD_WITH_XCB_HEADERS OFF"
+      "DYNAMIC_LOADER ${SK_DYNAMIC_OPENXR}"
+    )
+
+    set(OPENXR_LIB openxr_loader)
+  endif()
 endif()
 
 #### meshoptimizer - https://github.com/zeux/meshoptimizer ####
-CPMAddPackage( # We're scraping the comment after the NAME for some other scripts
-  NAME meshoptimizer # 0.20
-  GITHUB_REPOSITORY zeux/meshoptimizer
-  GIT_TAG           c21d3be6ddf627f8ca852ba4b6db9903b0557858
-)
-set_target_properties(meshoptimizer PROPERTIES POSITION_INDEPENDENT_CODE ON)
+find_package(meshoptimizer)
+
+if(NOT meshoptimizer_FOUND)
+  CPMAddPackage( # We're scraping the comment after the NAME for some other scripts
+    NAME meshoptimizer # 0.20
+    GITHUB_REPOSITORY zeux/meshoptimizer
+    GIT_TAG           c21d3be6ddf627f8ca852ba4b6db9903b0557858
+  )
+  set_target_properties(meshoptimizer PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
 
 #### basis_universal - https://github.com/BinomialLLC/basis_universal ####
-CPMAddPackage( # We're scraping the comment after the NAME for some other scripts
-  NAME basis_universal # 1.16.4
-  GITHUB_REPOSITORY BinomialLLC/basis_universal
-  GIT_TAG           900e40fb5d2502927360fe2f31762bdbb624455f
-  DOWNLOAD_ONLY     YES # basis universal doesn't have a library in it, we include code from this library directly
-)
-add_compile_definitions(BASISD_SUPPORT_FXT1=0)
-add_compile_definitions(BASISD_SUPPORT_PVRTC1=0)
-add_compile_definitions(BASISD_SUPPORT_PVRTC2=0)
-add_compile_definitions(BASISD_SUPPORT_ATC=0)
-add_compile_definitions(BASISD_SUPPORT_ETC2_EAC_A8=0)
-add_compile_definitions(BASISD_SUPPORT_BC7=0)
-add_compile_definitions(BASISD_SUPPORT_BC7_MODE5=0)
+find_package(basisu)
+
+if(NOT basisu_FOUND)
+  CPMAddPackage( # We're scraping the comment after the NAME for some other scripts
+    NAME basisu # 1.16.4
+    GITHUB_REPOSITORY BinomialLLC/basisu
+    GIT_TAG           900e40fb5d2502927360fe2f31762bdbb624455f
+    DOWNLOAD_ONLY     YES # basis universal doesn't have a library in it, we include code from this library directly
+  )
+  add_compile_definitions(BASISD_SUPPORT_FXT1=0)
+  add_compile_definitions(BASISD_SUPPORT_PVRTC1=0)
+  add_compile_definitions(BASISD_SUPPORT_PVRTC2=0)
+  add_compile_definitions(BASISD_SUPPORT_ATC=0)
+  add_compile_definitions(BASISD_SUPPORT_ETC2_EAC_A8=0)
+  add_compile_definitions(BASISD_SUPPORT_BC7=0)
+  add_compile_definitions(BASISD_SUPPORT_BC7_MODE5=0)
+endif()
 
 #### sk_gpu - https://github.com/StereoKit/sk_gpu ####
-CPMAddPackage( # We're scraping the comment after the NAME for some other scripts
-  NAME sk_gpu # 2025.6.27
-  URL https://github.com/StereoKit/sk_gpu/releases/download/v2025.6.27/sk_gpu.v2025.6.27.zip
-)
-# For building directly with in-progress sk_gpu changes, point this to your
-# local sk_gpu clone, and use it instead of CPM.
-#add_subdirectory(../sk_gpu/bin/distribute ../sk_gpu/bin/distribute/bin)
+find_package(sk_gpu)
+
+if(NOT sk_gpu_FOUND)
+  CPMAddPackage( # We're scraping the comment after the NAME for some other scripts
+    NAME sk_gpu # 2025.6.27
+    URL https://github.com/StereoKit/sk_gpu/releases/download/v2025.6.27/sk_gpu.v2025.6.27.zip
+  )
+  # For building directly with in-progress sk_gpu changes, point this to your
+  # local sk_gpu clone, and use it instead of CPM.
+  #add_subdirectory(../sk_gpu/bin/distribute ../sk_gpu/bin/distribute/bin)
+endif()
 
 ###########################################
 ## StereoKitC                            ##
@@ -452,10 +477,10 @@ set(SK_SRC_UI
   StereoKitC/ui/ui_theming.h
   StereoKitC/ui/ui_theming.cpp )
 
-if (basis_universal_ADDED)
+if (basisu_ADDED)
   set(SK_SRC_BASISU
-    ${basis_universal_SOURCE_DIR}/transcoder/basisu_transcoder.cpp
-    ${basis_universal_SOURCE_DIR}/zstd/zstd.c)
+    ${basisu_SOURCE_DIR}/transcoder/basisu_transcoder.cpp
+    ${basisu_SOURCE_DIR}/zstd/zstd.c)
 endif()
 
 set(SK_SRC_SHADERS_H
@@ -560,8 +585,8 @@ target_include_directories(StereoKitC
     ${CMAKE_CURRENT_BINARY_DIR}/StereoKitC/
     ${LINUX_INCLUDES}
 )
-if (basis_universal_ADDED)
-  target_include_directories(StereoKitC PRIVATE ${basis_universal_SOURCE_DIR}/transcoder)
+if (basisu_ADDED)
+  target_include_directories(StereoKitC PRIVATE ${basisu_SOURCE_DIR}/transcoder)
 endif()
 
 target_link_libraries( StereoKitC
@@ -590,15 +615,15 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   set(SK_WARNING_FLAG    /W0)
 endif()
 
-if (SK_BUILD_OPENXR_LOADER)
+if (SK_BUILD_OPENXR_LOADER AND TARGET openxr_loader)
   target_compile_options(openxr_loader PRIVATE ${SK_WARNING_FLAG})
   target_compile_options(openxr_loader PRIVATE "$<$<CONFIG:RELEASE>:${SK_RELEASE_COMPILE}>")
   target_link_options   (openxr_loader PRIVATE ${SK_LINKER_FLAGS} "$<$<CONFIG:RELEASE>:${SK_RELEASE_LINK}>")
 endif()
-if (SK_PHYSICS)
-  target_compile_options(reactphysics3d PRIVATE ${SK_WARNING_FLAG})
-  target_compile_options(reactphysics3d PRIVATE "$<$<CONFIG:RELEASE>:${SK_RELEASE_COMPILE}>")
-  target_link_options   (reactphysics3d PRIVATE "$<$<CONFIG:RELEASE>:${SK_RELEASE_LINK}>")
+if (SK_PHYSICS AND TARGET ReactPhysics3D)
+  target_compile_options(ReactPhysics3D PRIVATE ${SK_WARNING_FLAG})
+  target_compile_options(ReactPhysics3D PRIVATE "$<$<CONFIG:RELEASE>:${SK_RELEASE_COMPILE}>")
+  target_link_options   (ReactPhysics3D PRIVATE "$<$<CONFIG:RELEASE>:${SK_RELEASE_LINK}>")
 endif()
 target_compile_options(StereoKitC PRIVATE "$<$<CONFIG:RELEASE>:${SK_RELEASE_COMPILE}>")
 target_link_options   (StereoKitC PRIVATE "$<$<CONFIG:RELEASE>:${SK_RELEASE_LINK}>")
@@ -748,7 +773,7 @@ endif()
 if (MSVC AND SK_MULTITHREAD_BUILD_BY_DEFAULT)
   add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP8>)
   if(SK_PHYSICS)
-    target_compile_options(reactphysics3d PRIVATE "/MP8")
+    target_compile_options(ReactPhysics3D PRIVATE "/MP8")
   endif()
   target_compile_options(openxr_loader PRIVATE "/MP8")
   target_compile_options(StereoKitC PRIVATE "/MP8")
