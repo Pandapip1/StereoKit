@@ -798,3 +798,8 @@ install(
   NAMESPACE   StereoKitC::
   DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/StereoKitC"
 )
+
+configure_file(pkg-config/StereoKitC.pc.in StereoKitC.pc @ONLY)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/StereoKitC.pc
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
