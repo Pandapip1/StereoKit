@@ -781,24 +781,20 @@ endif()
 ###########################################
 
 # For installing on Linux
-# find_package(PkgConfig)
+find_package(PkgConfig)
 
-#install(
-#  TARGETS StereoKitC 
-#  EXPORT  StereoKitC-targets
-#)
-#
-#install(
-#  FILES       "StereoKitC/stereokit.h" "StereoKitC/stereokit_ui.h" "tools/include/stereokit.hlsli"
-#  DESTINATION include)
-#
-#install(
-#  FILES       "tools/skshaderc" 
-#  DESTINATION bin)
-#
-#install(
-#  EXPORT      StereoKitC-targets
-#  FILE        StereoKitCConfig.cmake
-#  NAMESPACE   StereoKitC::
-#  DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/StereoKitC"
-#)
+install(
+  TARGETS StereoKitC 
+  EXPORT  StereoKitC-targets
+)
+
+install(
+  FILES       "StereoKitC/stereokit.h" "StereoKitC/stereokit_ui.h" "tools/include/stereokit.hlsli"
+  DESTINATION include)
+
+install(
+  EXPORT      StereoKitC-targets
+  FILE        StereoKitCConfig.cmake
+  NAMESPACE   StereoKitC::
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/StereoKitC"
+)
