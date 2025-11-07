@@ -190,7 +190,7 @@ if(SK_PHYSICS)
   find_package(ReactPhysics3D)
 
   if(ReactPhysics3D_FOUND)
-    set(PHYSICS_LIB ReactPhysics3D)
+    set(PHYSICS_LIB reactphysics3d)
   else()
     # Recent versions of MSVC introduce a chrono bug, this patch removes chrono
     # code from ReactPhysics3D. Linux doesn't like applying this patch, so we
@@ -206,7 +206,7 @@ if(SK_PHYSICS)
       PATCH_COMMAND ${SK_PHYS_PATCH}
       EXCLUDE_FROM_ALL YES
     )
-    # Something in reactphysics3d seems to require -fPIC
+    # Dynamic linking to static libs needs PIC
     set_property(TARGET ReactPhysics3D PROPERTY POSITION_INDEPENDENT_CODE ON)
 
     set(PHYSICS_LIB ReactPhysics3D)
@@ -598,7 +598,6 @@ target_link_libraries( StereoKitC
     ${CMAKE_DL_LIBS}
     meshoptimizer
   PUBLIC
-    sk_gpu
     ${ANDROID_LIBS}
 )
 
